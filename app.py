@@ -32,8 +32,6 @@ app.add_middleware(
 mongo_client = AsyncIOMotorClient(MONGO_URL)
 db = mongo_client.pulse_messenger
 
-# ─── SECURITY ─────────────────────────────────────────────
-pwd = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 def hash_pw(password: str) -> str:
     return bcrypt.hashpw(password.encode(), bcrypt.gensalt()).decode()
