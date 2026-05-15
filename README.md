@@ -99,4 +99,4 @@ MONGO_URL="mongodb+srv://user:pass@cluster.mongodb.net/pulse" uvicorn app:app --
 | POST   | `/messages?token=`          | Send a message           |
 | WS     | `/ws/{username}?token=`     | WebSocket connection     |
 
-Interactive API docs: http://localhost:8000/docs
+Interactive API docs: https://pulse-messenger-ati5.onrender.com/
