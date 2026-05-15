@@ -275,10 +275,10 @@ async def serve_frontend():
 # ─── STARTUP: CREATE INDEXES ──────────────────────────────
 @app.on_event("startup")
 async def startup():
-    await db.users.create_index("username", unique=True)
-    await db.messages.create_index("convo_key")
-    await db.messages.create_index("participants")
-    await db.messages.create_index("created_at")
-    print("✅ Pulse Messenger API started")
-    print("📦 MongoDB connected:", MONGO_URL)
-    print("🌐 Visit: http://localhost:8000")
+    try:
+        await db.users.create_index("username", unique=True)
+        await db.messages.create_index("convo_key")
+        await db.messages.create_index("participants")
+        print("✅ Pulse Messenger started")
+    except Exception as e:
+        print(f"⚠️ Startup warning: {e}")
