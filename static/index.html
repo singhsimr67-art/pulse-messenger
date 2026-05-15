@@ -1,0 +1,1261 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pulse — Messenger</title>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500&display=swap"
+    rel="stylesheet">
+  <style>
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    :root {
+      --bg: #08080f;
+      --surface: #101018;
+      --surface2: #181826;
+      --surface3: #20203a;
+      --border: #252540;
+      --accent: #6c63ff;
+      --accent-h: #8b84ff;
+      --accent2: #ff6b9d;
+      --glow: rgba(108, 99, 255, 0.18);
+      --text: #e2e2f0;
+      --muted: #606080;
+      --dim: #30305a;
+      --online: #34d399;
+      --radius: 14px;
+      --r: 8px;
+    }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+
+    /* Ambient blobs */
+    body::before {
+      content: '';
+      position: fixed;
+      top: -25%;
+      left: -15%;
+      width: 55%;
+      height: 55%;
+      background: radial-gradient(ellipse, rgba(108, 99, 255, .07) 0%, transparent 70%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    body::after {
+      content: '';
+      position: fixed;
+      bottom: -20%;
+      right: -10%;
+      width: 45%;
+      height: 45%;
+      background: radial-gradient(ellipse, rgba(255, 107, 157, .05) 0%, transparent 70%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* ════════════════════════════════
+   AUTH
+════════════════════════════════ */
+    #auth {
+      position: relative;
+      z-index: 10;
+      width: 100%;
+      max-width: 400px;
+      padding: 20px;
+      animation: fadeUp .45s ease;
+    }
+
+    .logo {
+      text-align: center;
+      margin-bottom: 32px;
+    }
+
+    .logo h1 {
+      font-family: 'Syne', sans-serif;
+      font-size: 2.6rem;
+      font-weight: 800;
+      letter-spacing: -1px;
+      background: linear-gradient(130deg, var(--accent), var(--accent2));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .logo p {
+      font-size: .82rem;
+      color: var(--muted);
+      margin-top: 4px;
+    }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 30px;
+      box-shadow: 0 28px 64px rgba(0, 0, 0, .45), inset 0 1px 0 rgba(255, 255, 255, .04);
+    }
+
+    .tabs {
+      display: flex;
+      gap: 3px;
+      background: var(--bg);
+      border-radius: var(--r);
+      padding: 3px;
+      margin-bottom: 26px;
+    }
+
+    .tab {
+      flex: 1;
+      padding: 8px;
+      border: none;
+      background: transparent;
+      color: var(--muted);
+      font-family: 'Syne', sans-serif;
+      font-size: .82rem;
+      font-weight: 600;
+      letter-spacing: .4px;
+      border-radius: calc(var(--r) - 1px);
+      cursor: pointer;
+      transition: all .2s;
+    }
+
+    .tab.on {
+      background: var(--surface3);
+      color: var(--text);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, .3);
+    }
+
+    .fg {
+      margin-bottom: 14px;
+    }
+
+    .fg label {
+      display: block;
+      font-size: .72rem;
+      font-weight: 500;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: .5px;
+      margin-bottom: 5px;
+    }
+
+    .fg input {
+      width: 100%;
+      padding: 11px 13px;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: var(--r);
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      font-size: .92rem;
+      outline: none;
+      transition: border-color .2s, box-shadow .2s;
+    }
+
+    .fg input:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--glow);
+    }
+
+    .fg input::placeholder {
+      color: var(--dim);
+    }
+
+    .btn-main {
+      width: 100%;
+      padding: 12px;
+      margin-top: 6px;
+      background: linear-gradient(135deg, var(--accent), #8b68ff);
+      border: none;
+      border-radius: var(--r);
+      color: #fff;
+      font-family: 'Syne', sans-serif;
+      font-size: .9rem;
+      font-weight: 700;
+      letter-spacing: .4px;
+      cursor: pointer;
+      transition: opacity .2s, transform .1s;
+    }
+
+    .btn-main:hover {
+      opacity: .88;
+      transform: translateY(-1px);
+    }
+
+    .btn-main:active {
+      transform: translateY(0);
+    }
+
+    .err {
+      display: none;
+      margin-top: 10px;
+      background: rgba(255, 107, 157, .1);
+      border: 1px solid rgba(255, 107, 157, .3);
+      border-radius: var(--r);
+      padding: 9px 12px;
+      font-size: .82rem;
+      color: var(--accent2);
+    }
+
+    /* loading spinner overlay */
+    .spinner-wrap {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 999;
+      background: rgba(8, 8, 15, .6);
+      backdrop-filter: blur(4px);
+      align-items: center;
+      justify-content: center;
+    }
+
+    .spinner-wrap.show {
+      display: flex;
+    }
+
+    .spinner {
+      width: 38px;
+      height: 38px;
+      border: 3px solid var(--border);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin .7s linear infinite;
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    /* ════════════════════════════════
+   APP
+════════════════════════════════ */
+    #app {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 10;
+      background: var(--bg);
+    }
+
+    .layout {
+      display: flex;
+      height: 100vh;
+    }
+
+    /* ── Sidebar ── */
+    .sidebar {
+      width: 290px;
+      min-width: 290px;
+      background: var(--surface);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .sb-head {
+      padding: 18px 16px 14px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .sb-logo {
+      font-family: 'Syne', sans-serif;
+      font-size: 1.35rem;
+      font-weight: 800;
+      background: linear-gradient(130deg, var(--accent), var(--accent2));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .icon-btn {
+      width: 32px;
+      height: 32px;
+      border: 1px solid var(--border);
+      background: var(--surface2);
+      border-radius: var(--r);
+      color: var(--muted);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: .95rem;
+      transition: all .2s;
+    }
+
+    .icon-btn:hover {
+      color: var(--text);
+      border-color: var(--accent);
+    }
+
+    .sb-search {
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .sb-search input {
+      width: 100%;
+      padding: 8px 12px;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      font-size: .85rem;
+      outline: none;
+      transition: border-color .2s;
+    }
+
+    .sb-search input:focus {
+      border-color: var(--accent);
+    }
+
+    .sb-search input::placeholder {
+      color: var(--dim);
+    }
+
+    .convos {
+      flex: 1;
+      overflow-y: auto;
+      padding: 6px 0;
+    }
+
+    .convos::-webkit-scrollbar {
+      width: 3px;
+    }
+
+    .convos::-webkit-scrollbar-thumb {
+      background: var(--border);
+      border-radius: 2px;
+    }
+
+    .convo-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 9px 14px;
+      cursor: pointer;
+      transition: background .15s;
+    }
+
+    .convo-item:hover {
+      background: var(--surface2);
+    }
+
+    .convo-item.active {
+      background: var(--surface3);
+    }
+
+    .av {
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Syne', sans-serif;
+      font-size: .82rem;
+      font-weight: 700;
+      flex-shrink: 0;
+      position: relative;
+      color: #fff;
+    }
+
+    .av-dot {
+      position: absolute;
+      bottom: 0;
+      right: 0;
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      background: var(--online);
+      border: 2px solid var(--surface);
+    }
+
+    .av-dot.off {
+      background: var(--dim);
+    }
+
+    .ci-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .ci-name {
+      font-size: .88rem;
+      font-weight: 500;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .ci-preview {
+      font-size: .75rem;
+      color: var(--muted);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      margin-top: 1px;
+    }
+
+    .ci-time {
+      font-size: .7rem;
+      color: var(--dim);
+      flex-shrink: 0;
+    }
+
+    .sb-foot {
+      border-top: 1px solid var(--border);
+      padding: 12px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .me-name {
+      flex: 1;
+      font-size: .86rem;
+      font-weight: 500;
+    }
+
+    .me-status {
+      font-size: .72rem;
+      color: var(--online);
+    }
+
+    .btn-logout {
+      padding: 5px 11px;
+      background: transparent;
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      color: var(--muted);
+      font-size: .76rem;
+      cursor: pointer;
+      transition: all .2s;
+    }
+
+    .btn-logout:hover {
+      border-color: var(--accent2);
+      color: var(--accent2);
+    }
+
+    /* ── Chat ── */
+    .chat {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      background: var(--bg);
+      background-image:
+        radial-gradient(circle at 15% 85%, rgba(108, 99, 255, .04) 0%, transparent 50%),
+        radial-gradient(circle at 85% 15%, rgba(255, 107, 157, .03) 0%, transparent 50%);
+    }
+
+    .chat-head {
+      padding: 14px 20px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: rgba(16, 16, 24, .8);
+      backdrop-filter: blur(12px);
+    }
+
+    .chat-head-info h3 {
+      font-family: 'Syne', sans-serif;
+      font-size: .95rem;
+      font-weight: 600;
+    }
+
+    .chat-head-info p {
+      font-size: .74rem;
+      color: var(--online);
+      margin-top: 1px;
+    }
+
+    .chat-head-info p.offline {
+      color: var(--muted);
+    }
+
+    .empty {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+    }
+
+    .empty-ico {
+      font-size: 3rem;
+      opacity: .2;
+    }
+
+    .empty h3 {
+      font-family: 'Syne', sans-serif;
+      font-size: 1rem;
+      color: var(--dim);
+    }
+
+    .empty p {
+      font-size: .82rem;
+      color: var(--dim);
+    }
+
+    .msgs {
+      flex: 1;
+      overflow-y: auto;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .msgs::-webkit-scrollbar {
+      width: 3px;
+    }
+
+    .msgs::-webkit-scrollbar-thumb {
+      background: var(--border);
+      border-radius: 2px;
+    }
+
+    .date-div {
+      text-align: center;
+      font-size: .68rem;
+      color: var(--dim);
+      letter-spacing: .5px;
+      text-transform: uppercase;
+      margin: 12px 0 8px;
+      position: relative;
+    }
+
+    .date-div::before,
+    .date-div::after {
+      content: '';
+      position: absolute;
+      top: 50%;
+      height: 1px;
+      background: var(--border);
+      width: calc(50% - 55px);
+    }
+
+    .date-div::before {
+      left: 0;
+    }
+
+    .date-div::after {
+      right: 0;
+    }
+
+    .msg {
+      display: flex;
+      gap: 6px;
+      align-items: flex-end;
+      margin-bottom: 2px;
+    }
+
+    .msg.own {
+      flex-direction: row-reverse;
+    }
+
+    .bubble {
+      max-width: 68%;
+      padding: 9px 13px;
+      border-radius: 16px;
+      font-size: .88rem;
+      line-height: 1.5;
+      animation: popIn .18s ease;
+    }
+
+    @keyframes popIn {
+      from {
+        opacity: 0;
+        transform: scale(.94)
+      }
+
+      to {
+        opacity: 1;
+        transform: scale(1)
+      }
+    }
+
+    .msg:not(.own) .bubble {
+      background: var(--surface2);
+      border-bottom-left-radius: 3px;
+    }
+
+    .msg.own .bubble {
+      background: linear-gradient(135deg, var(--accent), #8b68ff);
+      color: #fff;
+      border-bottom-right-radius: 3px;
+    }
+
+    .mtime {
+      font-size: .66rem;
+      color: var(--dim);
+      margin: 0 3px 2px;
+      flex-shrink: 0;
+    }
+
+    /* typing dots */
+    .typing-bubble {
+      display: flex;
+      gap: 4px;
+      align-items: center;
+    }
+
+    .dot {
+      width: 6px;
+      height: 6px;
+      background: var(--muted);
+      border-radius: 50%;
+      animation: bob 1.2s infinite;
+    }
+
+    .dot:nth-child(2) {
+      animation-delay: .2s
+    }
+
+    .dot:nth-child(3) {
+      animation-delay: .4s
+    }
+
+    @keyframes bob {
+
+      0%,
+      60%,
+      100% {
+        transform: translateY(0)
+      }
+
+      30% {
+        transform: translateY(-5px)
+      }
+    }
+
+    .input-area {
+      padding: 12px 18px;
+      border-top: 1px solid var(--border);
+      background: rgba(16, 16, 24, .8);
+      backdrop-filter: blur(12px);
+      display: flex;
+      gap: 8px;
+      align-items: flex-end;
+    }
+
+    .input-wrap {
+      flex: 1;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 13px;
+      transition: border-color .2s, box-shadow .2s;
+    }
+
+    .input-wrap:focus-within {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--glow);
+    }
+
+    textarea#ti {
+      flex: 1;
+      border: none;
+      background: transparent;
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      font-size: .9rem;
+      outline: none;
+      resize: none;
+      max-height: 100px;
+      line-height: 1.5;
+    }
+
+    textarea#ti::placeholder {
+      color: var(--dim);
+    }
+
+    .btn-send {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      flex-shrink: 0;
+      background: linear-gradient(135deg, var(--accent), #8b68ff);
+      border: none;
+      color: #fff;
+      font-size: .95rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: opacity .2s, transform .1s;
+    }
+
+    .btn-send:hover {
+      opacity: .9;
+      transform: scale(1.05);
+    }
+
+    .btn-send:active {
+      transform: scale(.95);
+    }
+
+    /* ── Modal ── */
+    .overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, .75);
+      backdrop-filter: blur(4px);
+      z-index: 100;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .overlay.open {
+      display: flex;
+    }
+
+    .modal {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 26px;
+      width: 360px;
+      box-shadow: 0 40px 80px rgba(0, 0, 0, .5);
+      animation: fadeUp .3s ease;
+    }
+
+    .modal h2 {
+      font-family: 'Syne', sans-serif;
+      font-size: 1rem;
+      font-weight: 700;
+      margin-bottom: 18px;
+    }
+
+    .user-list {
+      max-height: 240px;
+      overflow-y: auto;
+      border: 1px solid var(--border);
+      border-radius: var(--r);
+      margin-bottom: 14px;
+    }
+
+    .user-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 12px;
+      cursor: pointer;
+      transition: background .15s;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .user-row:last-child {
+      border-bottom: none;
+    }
+
+    .user-row:hover {
+      background: var(--surface2);
+    }
+
+    .user-row .uname {
+      font-size: .88rem;
+      font-weight: 500;
+    }
+
+    .user-row .uhandle {
+      font-size: .74rem;
+      color: var(--muted);
+      margin-left: auto;
+    }
+
+    .btn-cancel {
+      width: 100%;
+      padding: 9px;
+      background: transparent;
+      border: 1px solid var(--border);
+      border-radius: var(--r);
+      color: var(--muted);
+      cursor: pointer;
+      transition: all .2s;
+      font-family: 'DM Sans', sans-serif;
+      font-size: .88rem;
+    }
+
+    .btn-cancel:hover {
+      border-color: var(--accent2);
+      color: var(--accent2);
+    }
+
+    /* Connection banner */
+    .conn-banner {
+      display: none;
+      background: rgba(255, 107, 157, .12);
+      border-bottom: 1px solid rgba(255, 107, 157, .25);
+      padding: 6px;
+      text-align: center;
+      font-size: .78rem;
+      color: var(--accent2);
+    }
+
+    .conn-banner.show {
+      display: block;
+    }
+
+    @keyframes fadeUp {
+      from {
+        opacity: 0;
+        transform: translateY(20px)
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0)
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- SPINNER -->
+  <div class="spinner-wrap" id="spinner">
+    <div class="spinner"></div>
+  </div>
+
+  <!-- ═══ AUTH ═══ -->
+  <div id="auth">
+    <div class="logo">
+      <h1>Pulse</h1>
+      <p>Real-time messaging, powered by MongoDB</p>
+    </div>
+    <div class="card">
+      <div class="tabs">
+        <button class="tab on" onclick="switchTab('login')">Sign In</button>
+        <button class="tab" onclick="switchTab('register')">Register</button>
+      </div>
+
+      <!-- Login -->
+      <div id="login-form">
+        <div class="fg"><label>Username</label><input id="l-u" type="text" placeholder="your username"
+            autocomplete="off"></div>
+        <div class="fg"><label>Password</label><input id="l-p" type="password" placeholder="your password"></div>
+        <button class="btn-main" onclick="doLogin()">Sign In →</button>
+        <div class="err" id="l-err"></div>
+      </div>
+
+      <!-- Register -->
+      <div id="reg-form" style="display:none">
+        <div class="fg"><label>Display Name</label><input id="r-n" type="text" placeholder="Full name"></div>
+        <div class="fg"><label>Username</label><input id="r-u" type="text" placeholder="lowercase, no spaces"
+            autocomplete="off"></div>
+        <div class="fg"><label>Password</label><input id="r-p" type="password" placeholder="min 6 characters"></div>
+        <button class="btn-main" onclick="doRegister()">Create Account →</button>
+        <div class="err" id="r-err"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ APP ═══ -->
+  <div id="app">
+    <div class="conn-banner" id="conn-banner">⚠ Disconnected from server — reconnecting…</div>
+    <div class="layout">
+
+      <!-- Sidebar -->
+      <div class="sidebar">
+        <div class="sb-head">
+          <span class="sb-logo">Pulse</span>
+          <button class="icon-btn" onclick="openModal()" title="New conversation">✉</button>
+        </div>
+        <div class="sb-search">
+          <input type="text" id="search" placeholder="🔍 Search…" oninput="filterConvos()">
+        </div>
+        <div class="convos" id="convos"></div>
+        <div class="sb-foot">
+          <div class="av" id="me-av"></div>
+          <div>
+            <div class="me-name" id="me-name"></div>
+            <div class="me-status">● Online</div>
+          </div>
+          <button class="btn-logout" onclick="logout()">Logout</button>
+        </div>
+      </div>
+
+      <!-- Chat -->
+      <div class="chat" id="chat">
+        <div class="empty" id="empty">
+          <div class="empty-ico">💬</div>
+          <h3>No conversation open</h3>
+          <p>Select one or press ✉ to start a new chat</p>
+        </div>
+        <div id="chat-inner" style="display:none;flex:1;flex-direction:column;overflow:hidden;">
+          <div class="chat-head">
+            <div class="av" id="ch-av" style="width:34px;height:34px;font-size:.78rem;"></div>
+            <div class="chat-head-info">
+              <h3 id="ch-name"></h3>
+              <p id="ch-status">Active now</p>
+            </div>
+          </div>
+          <div class="msgs" id="msgs"></div>
+          <div class="input-area">
+            <div class="input-wrap">
+              <textarea id="ti" rows="1" placeholder="Type a message…" onkeydown="keydown(event)"
+                oninput="autoH(this)"></textarea>
+            </div>
+            <button class="btn-send" onclick="sendMsg()">➤</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal -->
+  <div class="overlay" id="overlay" onclick="if(event.target===this)closeModal()">
+    <div class="modal">
+      <h2>Start a conversation</h2>
+      <div class="user-list" id="user-list"></div>
+      <button class="btn-cancel" onclick="closeModal()">Cancel</button>
+    </div>
+  </div>
+
+  <script>
+    // ─── CONFIG ───────────────────────────────────────────────────────
+    const API = '';   // same origin — FastAPI serves both frontend & API
+
+    // ─── STATE ────────────────────────────────────────────────────────
+    let token = localStorage.getItem('pulse_token');
+    let me = JSON.parse(localStorage.getItem('pulse_me') || 'null');
+    let activeKey = null;
+    let ws = null;
+    let allConvos = [];
+
+    // ─── UTILS ────────────────────────────────────────────────────────
+    const $ = id => document.getElementById(id);
+    const esc = s => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+
+    function avatarGrad(u) {
+      const palettes = [
+        ['#6c63ff', '#ff6b9d'], ['#34d399', '#06b6d4'], ['#f59e0b', '#ef4444'],
+        ['#ec4899', '#8b5cf6'], ['#3b82f6', '#06b6d4'], ['#84cc16', '#eab308'],
+      ];
+      let h = 0;
+      for (const c of u) h = (h * 31 + c.charCodeAt(0)) & 0xffffff;
+      const [a, b] = palettes[h % palettes.length];
+      return `linear-gradient(135deg,${a},${b})`;
+    }
+    function initials(n) { return n.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase(); }
+    function fmtTime(iso) {
+      const d = new Date(iso), now = new Date();
+      if (d.toDateString() === now.toDateString()) return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      return d.toLocaleDateString([], { month: 'short', day: 'numeric' });
+    }
+    function fmtDate(iso) { return new Date(iso).toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric' }); }
+
+    async function api(path, opts = {}) {
+      const sep = path.includes('?') ? '&' : '?';
+      const url = API + path + (token ? sep + 'token=' + token : '');
+      const res = await fetch(url, { headers: { 'Content-Type': 'application/json' }, ...opts });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({ detail: 'Network error' }));
+        throw new Error(err.detail || 'Error');
+      }
+      return res.json();
+    }
+
+    function spin(on) { $('spinner').classList.toggle('show', on); }
+    function showErr(id, msg) {
+      const el = $(id);
+      el.textContent = msg;
+      el.style.display = 'block';
+      setTimeout(() => el.style.display = 'none', 4000);
+    }
+
+    // ─── AUTH ─────────────────────────────────────────────────────────
+    function switchTab(tab) {
+      document.querySelectorAll('.tab').forEach((t, i) => t.classList.toggle('on', (tab === 'login' && i === 0) || (tab === 'register' && i === 1)));
+      $('login-form').style.display = tab === 'login' ? 'block' : 'none';
+      $('reg-form').style.display = tab === 'register' ? 'block' : 'none';
+    }
+
+    async function doLogin() {
+      const username = $('l-u').value.trim().toLowerCase();
+      const password = $('l-p').value;
+      if (!username || !password) return showErr('l-err', 'Fill in all fields');
+      try {
+        spin(true);
+        const data = await api('/auth/login', {
+          method: 'POST', body: JSON.stringify({ username, password })
+        });
+        saveSession(data);
+      } catch (e) { showErr('l-err', e.message); }
+      finally { spin(false); }
+    }
+
+    async function doRegister() {
+      const name = $('r-n').value.trim();
+      const username = $('r-u').value.trim().toLowerCase();
+      const password = $('r-p').value;
+      if (!name || !username || !password) return showErr('r-err', 'Fill in all fields');
+      try {
+        spin(true);
+        const data = await api('/auth/register', {
+          method: 'POST', body: JSON.stringify({ name, username, password })
+        });
+        saveSession(data);
+      } catch (e) { showErr('r-err', e.message); }
+      finally { spin(false); }
+    }
+
+    function saveSession({ token: t, user }) {
+      token = t; me = user;
+      localStorage.setItem('pulse_token', token);
+      localStorage.setItem('pulse_me', JSON.stringify(me));
+      bootApp();
+    }
+
+    function logout() {
+      if (ws) ws.close();
+      token = null; me = null; activeKey = null;
+      localStorage.removeItem('pulse_token'); localStorage.removeItem('pulse_me');
+      $('app').style.display = 'none'; $('auth').style.display = 'block';
+      $('l-u').value = ''; $('l-p').value = '';
+    }
+
+    // ─── BOOT ─────────────────────────────────────────────────────────
+    async function bootApp() {
+      $('auth').style.display = 'none';
+      $('app').style.display = 'block';
+
+      // Set "me" avatar
+      const av = $('me-av');
+      av.style.background = avatarGrad(me.username);
+      av.textContent = initials(me.name);
+      $('me-name').textContent = me.name;
+
+      await loadConvos();
+      connectWS();
+    }
+
+    // ─── CONVERSATIONS ────────────────────────────────────────────────
+    async function loadConvos() {
+      try {
+        allConvos = await api('/conversations');
+        renderConvos(allConvos);
+      } catch (e) { console.error(e); }
+    }
+
+    function renderConvos(list) {
+      const f = $('search').value.toLowerCase();
+      const filtered = f ? list.filter(c => c.other.name.toLowerCase().includes(f)) : list;
+      if (!filtered.length) {
+        $('convos').innerHTML = `<div style="text-align:center;padding:28px 16px;color:var(--dim);font-size:.82rem;">
+      ${f ? 'No results' : 'No conversations yet.<br>Click ✉ to start one!'}
+    </div>`;
+        return;
+      }
+      $('convos').innerHTML = filtered.map(c => {
+        const lm = c.last_message;
+        const preview = lm ? (lm.from === me.username ? 'You: ' : '') + lm.text : 'Start chatting…';
+        const time = lm ? fmtTime(lm.ts) : '';
+        return `
+      <div class="convo-item ${activeKey === c.convo_key ? 'active' : ''}" onclick="openConvo('${c.convo_key}','${c.other.username}','${c.other.name}',${c.other_online})">
+        <div class="av" style="background:${avatarGrad(c.other.username)}">
+          ${initials(c.other.name)}
+          <span class="av-dot ${c.other_online ? '' : 'off'}"></span>
+        </div>
+        <div class="ci-info">
+          <div class="ci-name">${esc(c.other.name)}</div>
+          <div class="ci-preview">${esc(preview.slice(0, 48))}</div>
+        </div>
+        <div class="ci-time">${time}</div>
+      </div>`;
+      }).join('');
+    }
+
+    function filterConvos() { renderConvos(allConvos); }
+
+    // ─── OPEN CONVERSATION ───────────────────────────────────────────
+    async function openConvo(key, otherUsername, otherName, online) {
+      activeKey = key;
+
+      $('empty').style.display = 'none';
+      const ci = $('chat-inner');
+      ci.style.display = 'flex';
+
+      const av = $('ch-av');
+      av.style.background = avatarGrad(otherUsername);
+      av.textContent = initials(otherName);
+      $('ch-name').textContent = otherName;
+
+      const st = $('ch-status');
+      st.textContent = online ? 'Active now' : 'Offline';
+      st.className = online ? '' : 'offline';
+
+      renderConvos(allConvos);
+      await loadMessages(key);
+      $('ti').focus();
+    }
+
+    async function loadMessages(key) {
+      try {
+        const msgs = await api('/messages/' + encodeURIComponent(key));
+        renderMessages(msgs);
+      } catch (e) { console.error(e); }
+    }
+
+    function renderMessages(msgs) {
+      const c = $('msgs');
+      let html = '', lastDate = null;
+
+      for (const m of msgs) {
+        const d = fmtDate(m.ts);
+        if (d !== lastDate) {
+          html += `<div class="date-div">${d}</div>`;
+          lastDate = d;
+        }
+        const own = m.from === me.username;
+        const t = new Date(m.ts).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        html += `
+      <div class="msg ${own ? 'own' : ''}">
+        <div class="bubble">${esc(m.text).replace(/\n/g, '<br>')}</div>
+        <div class="mtime">${t}</div>
+      </div>`;
+      }
+      c.innerHTML = html;
+      c.scrollTop = c.scrollHeight;
+    }
+
+    function appendMessage(m) {
+      const c = $('msgs');
+      const own = m.from === me.username;
+      const t = new Date(m.ts).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      const div = document.createElement('div');
+      div.className = `msg ${own ? 'own' : ''}`;
+      div.innerHTML = `
+    <div class="bubble">${esc(m.text).replace(/\n/g, '<br>')}</div>
+    <div class="mtime">${t}</div>`;
+      c.appendChild(div);
+      c.scrollTop = c.scrollHeight;
+    }
+
+    // ─── SEND MESSAGE ─────────────────────────────────────────────────
+    async function sendMsg() {
+      if (!activeKey) return;
+      const input = $('ti');
+      const text = input.value.trim();
+      if (!text) return;
+
+      const parts = activeKey.split('::');
+      const to = parts.find(p => p !== me.username);
+
+      input.value = '';
+      input.style.height = 'auto';
+
+      try {
+        const msg = await api('/messages', {
+          method: 'POST',
+          body: JSON.stringify({ to, text })
+        });
+        // Append locally right away (ws echo may also arrive)
+        appendMessage(msg);
+        await loadConvos();
+      } catch (e) { alert('Failed to send: ' + e.message); }
+    }
+
+    function keydown(e) {
+      if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMsg(); }
+    }
+    function autoH(el) {
+      el.style.height = 'auto';
+      el.style.height = Math.min(el.scrollHeight, 100) + 'px';
+    }
+
+    // ─── WEBSOCKET ────────────────────────────────────────────────────
+    function connectWS() {
+      const proto = location.protocol === 'https:' ? 'wss' : 'ws';
+      const url = `${proto}://${location.host}/ws/${me.username}?token=${token}`;
+      ws = new WebSocket(url);
+
+      ws.onopen = () => {
+        $('conn-banner').classList.remove('show');
+      };
+
+      ws.onmessage = async ({ data }) => {
+        const msg = JSON.parse(data);
+        if (msg.type === 'new_message') {
+          const m = msg.message;
+          // If we're viewing this convo, append the message
+          if (activeKey === m.convo_key && m.from !== me.username) {
+            appendMessage(m);
+          }
+          await loadConvos();
+        }
+      };
+
+      ws.onclose = () => {
+        $('conn-banner').classList.add('show');
+        setTimeout(connectWS, 3000);  // reconnect
+      };
+
+      ws.onerror = () => ws.close();
+    }
+
+    // ─── MODAL (new conversation) ────────────────────────────────────
+    async function openModal() {
+      try {
+        const users = await api('/users');
+        $('user-list').innerHTML = users.length ? users.map(u => `
+      <div class="user-row" onclick="startWith('${u.username}','${u.name}')">
+        <div class="av" style="width:34px;height:34px;font-size:.78rem;background:${avatarGrad(u.username)}">${initials(u.name)}</div>
+        <span class="uname">${esc(u.name)}</span>
+        <span class="uhandle">@${u.username}</span>
+        ${u.online ? '<span style="color:var(--online);font-size:.72rem;">● online</span>' : ''}
+      </div>`).join('')
+          : '<div style="padding:20px;text-align:center;color:var(--dim);font-size:.82rem;">No other users registered yet</div>';
+      } catch (e) { $('user-list').innerHTML = '<div style="padding:16px;color:var(--accent2);">Error loading users</div>'; }
+      $('overlay').classList.add('open');
+    }
+    function closeModal() { $('overlay').classList.remove('open'); }
+
+    async function startWith(username, name) {
+      closeModal();
+      // Compute convo key client-side (same logic as backend)
+      const key = [me.username, username].sort().join('::');
+      await openConvo(key, username, name, false);
+      await loadConvos();
+    }
+
+    // ─── INIT ─────────────────────────────────────────────────────────
+    if (token && me) {
+      bootApp();
+    }
+  </script>
+</body>
+
+</html>
