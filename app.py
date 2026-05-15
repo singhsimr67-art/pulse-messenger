@@ -5,7 +5,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 from motor.motor_asyncio import AsyncIOMotorClient
 from pydantic import BaseModel
-from passlib.context import CryptContext
+import bcrypt
 from jose import JWTError, jwt
 from datetime import datetime, timedelta
 from bson import ObjectId
@@ -36,10 +36,9 @@ db = mongo_client.pulse_messenger
 pwd = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 def hash_pw(password: str) -> str:
-    return pwd.hash(password)
-
+    return bcrypt.hashpw(password.encode(), bcrypt.gensalt()).decode()
 def check_pw(plain: str, hashed: str) -> bool:
-    return pwd.verify(plain, hashed)
+    return bcrypt.checkpw(plain.encode(), hashed.encode())
 
 def make_token(username: str) -> str:
     exp = datetime.utcnow() + timedelta(days=TOKEN_DAYS)
